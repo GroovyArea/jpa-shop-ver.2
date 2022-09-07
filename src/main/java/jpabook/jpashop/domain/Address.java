@@ -6,8 +6,8 @@ import javax.persistence.Embeddable;
 
 @Embeddable
 @Getter
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@NoArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {
 
     private String city;
