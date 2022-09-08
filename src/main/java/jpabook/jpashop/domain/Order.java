@@ -12,8 +12,8 @@ import java.util.List;
 
 import static javax.persistence.FetchType.LAZY;
 
-@Table(name = "orders")
 @Entity
+@Table(name = "orders")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,18 +28,19 @@ public class Order {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "order", fetch = LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @OneToOne(fetch = LAZY)
+    @OneToOne(fetch = LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "delivery_id")
     private Delivery delivery;
 
-    private LocalDateTime orderDate;
+    private LocalDateTime orderDate; //주문시간
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus status; //주문상태 [ORDER, CANCEL]
 
+    //==연관관계 메서드==//
     public void setMember(Member member) {
         this.member = member;
         member.getOrders().add(this);
@@ -55,16 +56,14 @@ public class Order {
         delivery.setOrder(this);
     }
 
-    //== 주문 생성 메서드 ==//
+    //==생성 메서드==//
     public static Order createOrder(Member member, Delivery delivery, OrderItem... orderItems) {
         Order order = new Order();
         order.setMember(member);
         order.setDelivery(delivery);
-
         for (OrderItem orderItem : orderItems) {
             order.addOrderItem(orderItem);
         }
-
         order.setStatus(OrderStatus.ORDER);
         order.setOrderDate(LocalDateTime.now());
         return order;
@@ -80,16 +79,21 @@ public class Order {
         }
 
         this.setStatus(OrderStatus.CANCEL);
-
         for (OrderItem orderItem : orderItems) {
             orderItem.cancel();
         }
     }
 
     //==조회 로직==//
+    /**
+     * 전체 주문 가격 조회
+     */
     public int getTotalPrice() {
-        return orderItems.stream()
-                .mapToInt(OrderItem::getTotalPrice)
-                .sum();
+        int totalPrice = 0;
+        for (OrderItem orderItem : orderItems) {
+            totalPrice += orderItem.getTotalPrice();
+        }
+        return totalPrice;
     }
+
 }
